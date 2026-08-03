@@ -14,7 +14,7 @@ export const list = async (req: Request, res: Response) => {
 export const getById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const task = await taskService.getTaskById(id);
+    const task = await taskService.getTaskById(String(id));
     if (!task) {
       return res.status(404).json({ error: 'Tarefa não encontrada' });
     }
@@ -41,7 +41,7 @@ export const update = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { completed, title } = req.body;
-    const updatedTask = await taskService.updateTask(id, completed, title);
+    const updatedTask = await taskService.updateTask(String(id), completed, title);
     res.json(updatedTask);
   } catch (error) {
     res.status(500).json({ error: 'Erro ao atualizar tarefa' });
@@ -51,7 +51,7 @@ export const update = async (req: Request, res: Response) => {
 export const remove = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    await taskService.deleteTask(id);
+    await taskService.deleteTask(String(id));
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: 'Erro ao deletar tarefa' });
