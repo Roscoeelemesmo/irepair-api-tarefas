@@ -1,56 +1,59 @@
 import { Request, Response } from 'express';
-import { taskService } from '../services/taskService.ts';
+import * as taskService from '../services/taskService';
 
-export const taskController = {
-  list(req: Request, res: Response) {
-    const { completed } = req.query;
-    const tasks = taskService.getAll(completed as string | undefined);
-    return res.status(200).json(tasks);
-  },
+export const list = async (req: Request, res: Response) => {
+  try {
+    const tasks = await taskService.getAllTasks();
+    return res.json(tasks); 
+  } catch (error) {
+    console.error(error); 
+    return res.status(500).json({ error: 'Erro ao buscar tarefas' });
+  }
+};
 
-  getById(req: Request, res: Response) {
+export const getById = async (req: Request, res: Response) => {
+  try {
     const { id } = req.params;
-    const task = taskService.getById(String(id));
-
+    const task = await taskService.getTaskById(String(id));
     if (!task) {
-      return res.status(404).json({ error: 'Tarefa não encontrada.' });
+      return res.status(404).json({ error: 'Tarefa não encontrada' });
     }
+    res.json(task);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao buscar tarefa' });
+  }
+};
 
-    return res.status(200).json(task);
-  },
-
-  create(req: Request, res: Response) {
+export const create = async (req: Request, res: Response) => {
+  try {
     const { title } = req.body;
-
     if (!title) {
-      return res.status(400).json({ error: 'O título da tarefa é obrigatório.' });
+      return res.status(400).json({ error: 'O título é obrigatório' });
     }
+    const newTask = await taskService.createTask(title);
+    res.status(201).json(newTask);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao criar tarefa' });
+  }
+};
 
-    const newTask = taskService.create(title);
-    return res.status(201).json(newTask);
-  },
-
-  update(req: Request, res: Response) {
+export const update = async (req: Request, res: Response) => {
+  try {
     const { id } = req.params;
-    const { title, completed } = req.body;
+    const { completed, title } = req.body;
+    const updatedTask = await taskService.updateTask(String(id), completed, title);
+    res.json(updatedTask);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao atualizar tarefa' });
+  }
+};
 
-    const updatedTask = taskService.update(String(id), { title, completed });
-
-    if (!updatedTask) {
-      return res.status(404).json({ error: 'Tarefa não encontrada.' });
-    }
-
-    return res.status(200).json(updatedTask);
-  },
-
-  delete(req: Request, res: Response) {
+export const remove = async (req: Request, res: Response) => {
+  try {
     const { id } = req.params;
-    const success = taskService.delete(String(id));
-
-    if (!success) {
-      return res.status(404).json({ error: 'Tarefa não encontrada.' });
-    }
-
-    return res.status(204).send();
+    await taskService.deleteTask(String(id));
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao deletar tarefa' });
   }
 };
